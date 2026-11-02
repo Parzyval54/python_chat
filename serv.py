@@ -21,6 +21,7 @@ s.bind((SERVER_HOST, SERVER_PORT))
 s.listen(5)
 print(f"[*] Listening as {SERVER_HOST}:{SERVER_PORT}")
 
+client_names= {} #socket -> nom
 
 
 def listen_for_clients(cs):
@@ -36,19 +37,27 @@ def listen_for_clients(cs):
             #client no longer connected
             #remove it from the set
             print(f"[!] Error: {e}")
-            client_sockets.remove(cs)
+            client_sockets.discard(cs)
+            nom = client_names.pop(cs, "un client")
+            text = f"[!] {nom} a quitté le chat"
             for client_socket in client_sockets:
-                client_socket.send("[!] Un client s'est déconnecté".encode())
+                client_socket.send(text.encode())
             break
         else:
             #if we received a message, replace the <SEP>
             #token with ":" for nice printing
             if not msg:
-                client_sockets.remove(cs)
+                client_sockets.discard(cs)
                 cs.close()
+                nom = client_names.pop(cs, "un client")
+                texte = f"[!] {nom} a quitté le chat"
                 for client_socket in client_sockets:
-                    client_socket.send("[!] Un client s'est déconnecté".encode())
+                    client_socket.send(texte.encode())
                 break
+            
+            if cs not in client_names:
+                client_names[cs] = msg.split(serparator_token)[0]
+                
             msg=msg.replace(serparator_token, ":")
 
         #iterate over all connected sockets :
