@@ -37,12 +37,17 @@ def listen_for_clients(cs):
             #remove it from the set
             print(f"[!] Error: {e}")
             client_sockets.remove(cs)
+            for client_socket in client_sockets:
+                client_socket.send("[!] Un client s'est déconnecté".encode())
             break
         else:
             #if we received a message, replace the <SEP>
             #token with ":" for nice printing
             if not msg:
                 client_sockets.remove(cs)
+                cs.close()
+                for client_socket in client_sockets:
+                    client_socket.send("[!] Un client s'est déconnecté".encode())
                 break
             msg=msg.replace(serparator_token, ":")
 
